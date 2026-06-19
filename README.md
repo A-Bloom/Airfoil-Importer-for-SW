@@ -1,1 +1,1 @@
-# SolidworksAirfoilImporter
+# Airfoil Importer for SW
