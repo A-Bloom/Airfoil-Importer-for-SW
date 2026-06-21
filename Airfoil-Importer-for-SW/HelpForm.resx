@@ -117,4 +117,20 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="helpTextBox.Text" xml:space="preserve">
+    <value>Airfoil Importer for SW: Quick Start Guide
+==========================================
+
+1. Open SolidWorks and ensure a Part document is actively open on your device.
+
+2. Click 'Browse' to select a 2D airfoil coordinate .txt file. Make sure the training edge is closed.
+
+3. Enter the desired 3D position for the leading edge and trailing edge.
+
+4. Enter the airfoil rotation angle. A zero rotation means that the airfoil looks like a line from directly +Y.
+
+5. Enter the feature name that you want for the airfoil. Leaving it the same will overwrite the one from before.
+
+6. Generate the airfoil!</value>
+  </data>
 </root>

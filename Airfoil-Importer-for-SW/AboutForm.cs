@@ -23,7 +23,12 @@ namespace AirfoilImporterForSW
             linkLabel1.LinkVisited = true;
 
             // Asks Windows to open the default browser to this exact URL
-            System.Diagnostics.Process.Start("https://github.com/YourUsername/SolidworksAirfoilImporter");
+            System.Diagnostics.Process.Start("https://github.com/A-Bloom/Airfoil-Importer-for-SW");
+        }
+
+        private void richTextBox1_TextChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

@@ -15,6 +15,7 @@ namespace AirfoilImporterForSW
         public HelpForm()
         {
             InitializeComponent();
+
         }
     }
 }

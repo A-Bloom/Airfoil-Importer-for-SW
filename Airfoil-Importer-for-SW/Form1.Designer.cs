@@ -82,7 +82,7 @@
             this.txtFilePath.Location = new System.Drawing.Point(162, 8);
             this.txtFilePath.Margin = new System.Windows.Forms.Padding(4, 8, 4, 4);
             this.txtFilePath.Name = "txtFilePath";
-            this.txtFilePath.Size = new System.Drawing.Size(240, 34);
+            this.txtFilePath.Size = new System.Drawing.Size(290, 34);
             this.txtFilePath.TabIndex = 1;
             this.txtFilePath.TextChanged += new System.EventHandler(this.txtFilePath_TextChanged);
             // 
@@ -362,10 +362,10 @@
             // btnBrowse
             // 
             this.btnBrowse.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.btnBrowse.Location = new System.Drawing.Point(410, 4);
+            this.btnBrowse.Location = new System.Drawing.Point(460, 4);
             this.btnBrowse.Margin = new System.Windows.Forms.Padding(4);
             this.btnBrowse.Name = "btnBrowse";
-            this.btnBrowse.Size = new System.Drawing.Size(142, 36);
+            this.btnBrowse.Size = new System.Drawing.Size(92, 36);
             this.btnBrowse.TabIndex = 4;
             this.btnBrowse.Text = "Browse";
             this.btnBrowse.UseVisualStyleBackColor = true;
@@ -377,18 +377,18 @@
             this.NameLabel.AutoSize = true;
             this.NameLabel.Location = new System.Drawing.Point(3, 0);
             this.NameLabel.Name = "NameLabel";
-            this.NameLabel.Size = new System.Drawing.Size(168, 28);
+            this.NameLabel.Size = new System.Drawing.Size(82, 28);
             this.NameLabel.TabIndex = 5;
-            this.NameLabel.Text = "Solidworks Curve Name:";
+            this.NameLabel.Text = "Feature Name:";
             this.NameLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.NameLabel.Click += new System.EventHandler(this.NameLabel_Click);
             // 
             // txtFeatureName
             // 
             this.txtFeatureName.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.txtFeatureName.Location = new System.Drawing.Point(178, 3);
+            this.txtFeatureName.Location = new System.Drawing.Point(113, 3);
             this.txtFeatureName.Name = "txtFeatureName";
-            this.txtFeatureName.Size = new System.Drawing.Size(375, 34);
+            this.txtFeatureName.Size = new System.Drawing.Size(440, 34);
             this.txtFeatureName.TabIndex = 6;
             // 
             // lblStatus
@@ -452,7 +452,7 @@
             this.tableLayoutPanel3.ColumnCount = 3;
             this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
             this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 150F));
+            this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 100F));
             this.tableLayoutPanel3.Controls.Add(this.txtFilePath, 1, 0);
             this.tableLayoutPanel3.Controls.Add(this.btnBrowse, 2, 0);
             this.tableLayoutPanel3.Controls.Add(this.AirfoilDataLabel, 0, 0);
@@ -469,7 +469,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tableLayoutPanel4.ColumnCount = 2;
-            this.tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 175F));
+            this.tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 110F));
             this.tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel4.Controls.Add(this.txtFeatureName, 1, 0);
             this.tableLayoutPanel4.Controls.Add(this.NameLabel, 0, 0);

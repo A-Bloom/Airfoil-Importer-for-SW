@@ -144,83 +144,29 @@ namespace AirfoilImporterForSW
             }
         }
 
-        // --- MATH ENGINE REMAINS EXACTLY THE SAME ---
+        // --- UPDATED MATH ENGINE ---
         private bool ProcessAirfoilData(string inputTxt, string outputTxt, double[] le, double[] te, double twistDeg)
         {
             try
             {
                 var lines = File.ReadAllLines(inputTxt);
-                List<double[]> coords2D = new List<double[]>();
 
-                foreach (var line in lines)
-                {
-                    var parts = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (parts.Length >= 2 && double.TryParse(parts[0], out double x) && double.TryParse(parts[1], out double y))
-                    {
-                        coords2D.Add(new double[] { x, y });
-                    }
-                }
-
-                double[] chordVec = VectorMath.Subtract(te, le);
-                double chordLen = VectorMath.Magnitude(chordVec);
-                double[] chordDir = VectorMath.Scale(chordVec, 1.0 / chordLen);
-
-                List<double[]> coords3D = new List<double[]>();
-                foreach (var pt in coords2D)
-                {
-                    coords3D.Add(new double[] { pt[0] * chordLen, pt[1] * chordLen, 0.0 });
-                }
-
-                double twistRad = twistDeg * (Math.PI / 180.0);
-                double cosT = Math.Cos(twistRad);
-                double sinT = Math.Sin(twistRad);
-                double[,] R_twist = {
-                    { 1, 0, 0 },
-                    { 0, cosT, -sinT },
-                    { 0, sinT, cosT }
-                };
-
-                for (int i = 0; i < coords3D.Count; i++)
-                {
-                    coords3D[i] = VectorMath.Multiply(R_twist, coords3D[i]);
-                }
-
-                double[] xAxis = { 1.0, 0.0, 0.0 };
-                double[] crossProd = VectorMath.CrossProduct(xAxis, chordDir);
-                double sinVal = VectorMath.Magnitude(crossProd);
-                double cosVal = VectorMath.DotProduct(xAxis, chordDir);
-
-                double[,] R_align = new double[3, 3] { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
-
-                if (sinVal > 1e-6)
-                {
-                    double[,] vx = {
-                        { 0, -crossProd[2], crossProd[1] },
-                        { crossProd[2], 0, -crossProd[0] },
-                        { -crossProd[1], crossProd[0], 0 }
-                    };
-                    double[,] vx2 = VectorMath.Multiply(vx, vx);
-                    double scale = (1 - cosVal) / (sinVal * sinVal);
-
-                    for (int i = 0; i < 3; i++)
-                        for (int j = 0; j < 3; j++)
-                            R_align[i, j] += vx[i, j] + (vx2[i, j] * scale);
-                }
-                else if (cosVal < 0)
-                {
-                    R_align = new double[,] { { -1, 0, 0 }, { 0, -1, 0 }, { 0, 0, 1 } };
-                }
-
+                // Open the temporary file to write to
                 using (StreamWriter writer = new StreamWriter(outputTxt))
                 {
-                    for (int i = 0; i < coords3D.Count; i++)
+                    foreach (var line in lines)
                     {
-                        double[] aligned = VectorMath.Multiply(R_align, coords3D[i]);
-                        double[] final = VectorMath.Add(aligned, le);
-                        writer.WriteLine($"{final[0]:F6}\t{final[1]:F6}\t{final[2]:F6}");
+                        // Clean up spaces/tabs
+                        var parts = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+
+                        // If it's a valid coordinate pair, transform it and write it immediately
+                        if (parts.Length >= 2 && double.TryParse(parts[0], out double x) && double.TryParse(parts[1], out double y))
+                        {
+                            double[] finalPt = TransformAirfoil(x, y, te, le, twistDeg);
+                            writer.WriteLine($"{finalPt[0]:F6}\t{finalPt[1]:F6}\t{finalPt[2]:F6}");
+                        }
                     }
                 }
-
                 return true;
             }
             catch (Exception ex)
@@ -228,6 +174,65 @@ namespace AirfoilImporterForSW
                 ShowStatus($"Math Error: {ex.Message}", Color.Red);
                 return false;
             }
+        }
+
+        // --- NEW TRANSFORMATION LOGIC ---
+        private double[] TransformAirfoil(double x_data, double y_data, double[] TE, double[] LE, double twistDegrees)
+        {
+            // 1. Calculate the 3D Chord Vector and its true physical length
+            double Cx = LE[0] - TE[0];
+            double Cy = LE[1] - TE[1];
+            double Cz = LE[2] - TE[2];
+            double chordLength = Math.Sqrt(Cx * Cx + Cy * Cy + Cz * Cz);
+
+            // Calculate the Local X axis (Normalized Chord vector)
+            double ux = Cx / chordLength;
+            double uy = Cy / chordLength;
+            double uz = Cz / chordLength;
+
+            // 2. FORCE HORIZONTAL SPAN
+            // Reversing the signs here flips the vector 180 degrees,
+            // which forces the resulting "Up" cross-product to point toward the sky instead of the ground.
+            double wx = -uz;
+            double wy = 0.0; // Strictly locked to horizontal
+            double wz = ux;
+
+            double Mw = Math.Sqrt(wx * wx + wz * wz);
+
+            if (Mw < 1e-6) { wx = 1; wy = 0; wz = 0; }
+            else { wx /= Mw; wy /= Mw; wz /= Mw; }
+
+            // 3. Calculate Local Y axis (The "Up" Thickness Vector)
+            double vx = wy * uz - wz * uy;
+            double vy = wz * ux - wx * uz;
+            double vz = wx * uy - wy * ux;
+
+            // 4. Apply User Washout (Twist)
+            double radians = twistDegrees * Math.PI / 180.0;
+            double cosT = Math.Cos(radians);
+            double sinT = Math.Sin(radians);
+
+            double twistedVx = vx * cosT + wx * sinT;
+            double twistedVy = vy * cosT + wy * sinT;
+            double twistedVz = vz * cosT + wz * sinT;
+
+            // 5. Map the 2D data to the new 3D system
+            // Standard airfoil text files define the nose (LE) at X=0 and the tail (TE) at X=1.
+            // Our 3D chord vector points from TE to LE, so we invert the parametric mapping:
+            // When x_data is 0 (Nose) -> mappingFactor is 1.0 (Places it at LE)
+            // When x_data is 1 (Tail) -> mappingFactor is 0.0 (Places it at TE)
+            double mappingFactor = 1.0 - x_data;
+
+            double finalX = TE[0] + (Cx * mappingFactor);
+            double finalY = TE[1] + (Cy * mappingFactor);
+            double finalZ = TE[2] + (Cz * mappingFactor);
+
+            // Extrude outward using the twisted Up vector, scaled by actual chord length
+            finalX += twistedVx * (y_data * chordLength);
+            finalY += twistedVy * (y_data * chordLength);
+            finalZ += twistedVz * (y_data * chordLength);
+
+            return new double[] { finalX, finalY, finalZ };
         }
 
         private void numTwist_ValueChanged(object sender, EventArgs e)
@@ -278,32 +283,4 @@ namespace AirfoilImporterForSW
         }
     }
 
-    // --- Lightweight Linear Algebra Helper ---
-    public static class VectorMath
-    {
-        public static double[] Add(double[] a, double[] b) => new double[] { a[0] + b[0], a[1] + b[1], a[2] + b[2] };
-        public static double[] Subtract(double[] a, double[] b) => new double[] { a[0] - b[0], a[1] - b[1], a[2] - b[2] };
-        public static double[] Scale(double[] v, double s) => new double[] { v[0] * s, v[1] * s, v[2] * s };
-        public static double DotProduct(double[] a, double[] b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-        public static double Magnitude(double[] v) => Math.Sqrt(DotProduct(v, v));
-        public static double[] CrossProduct(double[] a, double[] b) => new double[] {
-            a[1] * b[2] - a[2] * b[1],
-            a[2] * b[0] - a[0] * b[2],
-            a[0] * b[1] - a[1] * b[0]
-        };
-        public static double[] Multiply(double[,] m, double[] v) => new double[] {
-            m[0,0]*v[0] + m[0,1]*v[1] + m[0,2]*v[2],
-            m[1,0]*v[0] + m[1,1]*v[1] + m[1,2]*v[2],
-            m[2,0]*v[0] + m[2,1]*v[1] + m[2,2]*v[2]
-        };
-        public static double[,] Multiply(double[,] a, double[,] b)
-        {
-            double[,] result = new double[3, 3];
-            for (int i = 0; i < 3; i++)
-                for (int j = 0; j < 3; j++)
-                    for (int k = 0; k < 3; k++)
-                        result[i, j] += a[i, k] * b[k, j];
-            return result;
-        }
-    }
 }

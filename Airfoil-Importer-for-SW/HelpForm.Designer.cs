@@ -28,24 +28,27 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(HelpForm));
+            this.helpTextBox = new System.Windows.Forms.RichTextBox();
             this.SuspendLayout();
             // 
-            // richTextBox1
+            // helpTextBox
             // 
-            this.richTextBox1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.richTextBox1.Location = new System.Drawing.Point(0, 0);
-            this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.Size = new System.Drawing.Size(1200, 675);
-            this.richTextBox1.TabIndex = 0;
-            this.richTextBox1.Text = "";
+            this.helpTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.helpTextBox.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.helpTextBox.Location = new System.Drawing.Point(0, 0);
+            this.helpTextBox.Name = "helpTextBox";
+            this.helpTextBox.ReadOnly = true;
+            this.helpTextBox.Size = new System.Drawing.Size(800, 450);
+            this.helpTextBox.TabIndex = 0;
+            this.helpTextBox.Text = resources.GetString("helpTextBox.Text");
             // 
             // HelpForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.richTextBox1);
+            this.Controls.Add(this.helpTextBox);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -58,6 +61,6 @@
 
         #endregion
 
-        private System.Windows.Forms.RichTextBox richTextBox1;
+        private System.Windows.Forms.RichTextBox helpTextBox;
     }
 }
