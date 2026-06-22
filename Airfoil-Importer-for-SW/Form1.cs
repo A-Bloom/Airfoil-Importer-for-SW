@@ -59,6 +59,7 @@ namespace AirfoilImporterForSW
             string inputFile = txtFilePath.Text;
             string featureName = txtFeatureName.Text;
 
+            // --- VALIDATE FEATURE NAME ---
             if (string.IsNullOrWhiteSpace(featureName))
             {
                 ShowStatus("Error: Please enter a name for the feature.", Color.Red);
@@ -89,17 +90,15 @@ namespace AirfoilImporterForSW
                 return;
             }
 
-            // --- NEW: AUTOMATIC UNIT SCALING ---
-            // The API requires meters. We read the document's unit setting and create a multiplier.
+            // Automatic Unit Scaling
             double scaleToMeters = 1.0;
-            int docUnit = swModel.LengthUnit; // 0=mm, 1=cm, 2=m, 3=in, 4=ft
+            int docUnit = swModel.LengthUnit;
 
-            if (docUnit == 0) scaleToMeters = 0.001;          // Millimeters
-            else if (docUnit == 1) scaleToMeters = 0.01;      // Centimeters
-            else if (docUnit == 3) scaleToMeters = 0.0254;    // Inches
-            else if (docUnit == 4) scaleToMeters = 0.3048;    // Feet
+            if (docUnit == 0) scaleToMeters = 0.001;
+            else if (docUnit == 1) scaleToMeters = 0.01;
+            else if (docUnit == 3) scaleToMeters = 0.0254;
+            else if (docUnit == 4) scaleToMeters = 0.3048;
 
-            // Apply the scale to the user's UI inputs so the math engine calculates in raw meters
             double[] le = {
                 (double)numLeX.Value * scaleToMeters,
                 (double)numLeY.Value * scaleToMeters,
@@ -114,7 +113,6 @@ namespace AirfoilImporterForSW
 
             double twistDeg = (double)numTwist.Value;
 
-            // Generate the flat array of points directly in memory
             double[] pointData;
             bool mathSuccess = ProcessAirfoilData(inputFile, le, te, twistDeg, out pointData);
             if (!mathSuccess) return;
@@ -123,22 +121,45 @@ namespace AirfoilImporterForSW
             {
                 swModel.ClearSelection2(true);
 
-                // Look for an existing SKETCH and delete it
-                if (swModel.Extension.SelectByID2(featureName, "SKETCH", 0.0, 0.0, 0.0, false, 0, null, 0))
-                {
-                    swModel.EditDelete();
-                }
+                // --- PARAMETRIC SKETCH EDITING ---
+                bool sketchExists = swModel.Extension.SelectByID2(featureName, "SKETCH", 0.0, 0.0, 0.0, false, 0, null, 0);
 
-                // Keep this catch just in case you have leftover "Normal" sketches from testing
-                if (swModel.Extension.SelectByID2(featureName + " Normal", "SKETCH", 0.0, 0.0, 0.0, false, 0, null, 0))
+                if (sketchExists)
                 {
-                    swModel.EditDelete();
+                    // 1. Enter the existing sketch
+                    swModel.EditSketch();
+
+                    // 2. Grab the active sketch and wipe its internal geometry
+                    Sketch activeSketch = (Sketch)swModel.SketchManager.ActiveSketch;
+                    if (activeSketch != null)
+                    {
+                        object[] sketchSegments = (object[])activeSketch.GetSketchSegments();
+                        if (sketchSegments != null)
+                        {
+                            swModel.ClearSelection2(true);
+                            foreach (SketchSegment seg in sketchSegments)
+                            {
+                                seg.Select4(true, null); // True means append to current selection
+                            }
+                            swModel.EditDelete(); // Deletes all selected segments
+                        }
+                    }
+                }
+                else
+                {
+                    // Catch leftover "Normal" sketches from previous testing
+                    if (swModel.Extension.SelectByID2(featureName + " Normal", "SKETCH", 0.0, 0.0, 0.0, false, 0, null, 0))
+                    {
+                        swModel.EditDelete();
+                    }
+
+                    swModel.ClearSelection2(true);
+
+                    // 1. Open a brand new 3D Sketch
+                    swModel.SketchManager.Insert3DSketch(true);
                 }
 
                 swModel.ClearSelection2(true);
-
-                // 1. Open a new 3D Sketch
-                swModel.SketchManager.Insert3DSketch(true);
 
                 // 2. Inject the array of points directly into a single continuous spline
                 object splineFeature = swModel.SketchManager.CreateSpline((object)pointData);
@@ -150,12 +171,10 @@ namespace AirfoilImporterForSW
                 double chordLength = Math.Sqrt(chordX * chordX + chordY * chordY + chordZ * chordZ);
                 double refLength = chordLength * 0.25;
 
-                // 1. Normalized Chord Vector (Local X)
                 double ux = chordX / chordLength;
                 double uy = chordY / chordLength;
                 double uz = chordZ / chordLength;
 
-                // 2. Original Horizontal Span Vector (Local Z)
                 double wx = -uz;
                 double wy = 0.0;
                 double wz = ux;
@@ -163,23 +182,18 @@ namespace AirfoilImporterForSW
                 if (Mw < 1e-6) { wx = 1; wy = 0; wz = 0; }
                 else { wx /= Mw; wy /= Mw; wz /= Mw; }
 
-                // 3. Original Up Vector (Local Y) -> Cross product of Span and Chord
                 double vx = wy * uz - wz * uy;
                 double vy = wz * ux - wx * uz;
                 double vz = wx * uy - wy * ux;
 
-                // 4. Apply Twist to the Span Vector
-                // Rotating around the Chord axis forces the Span (Z) and Up (Y) vectors to mix
                 double radians = twistDeg * Math.PI / 180.0;
                 double cosT = Math.Cos(radians);
                 double sinT = Math.Sin(radians);
 
-                // Calculate the new, twisted normal vector
                 double twistedWx = wx * cosT - vx * sinT;
                 double twistedWy = wy * cosT - vy * sinT;
                 double twistedWz = wz * cosT - vz * sinT;
 
-                // 5. Draw the line starting from LE, pointing down the twisted span
                 SketchSegment refLine = swModel.SketchManager.CreateLine(
                     le[0], le[1], le[2],
                     le[0] + (twistedWx * refLength),
@@ -193,11 +207,14 @@ namespace AirfoilImporterForSW
 
                 if (splineFeature != null)
                 {
-                    // Rename the newly generated sketch to the exact base name
-                    Feature lastFeature = (Feature)swModel.FeatureByPositionReverse(0);
-                    if (lastFeature != null) lastFeature.Name = featureName;
+                    // Only rename if it is a brand new sketch
+                    if (!sketchExists)
+                    {
+                        Feature lastFeature = (Feature)swModel.FeatureByPositionReverse(0);
+                        if (lastFeature != null) lastFeature.Name = featureName;
+                    }
 
-                    ShowStatus($"3D Sketch Generated!", Color.Green);
+                    ShowStatus(sketchExists ? $"Airfoil Updated!" : $"3D Sketch Generated!", Color.Green);
                 }
                 else
                 {
