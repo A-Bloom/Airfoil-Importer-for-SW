@@ -122,7 +122,7 @@
 
 Developed by A Bloom
 
-A standalone Windows Forms utility that automates the generation of 3D aerodynamic profiles. It parses standard 2D coordinate files and uses the SolidWorks COM API to inject precise reference curves directly into the active part document.
+A standalone Windows Forms utility that automates the generation of 3D aerodynamic profiles. It parses standard 2D coordinate files and uses the SolidWorks COM API to inject precise 3D sketches directly into the active part document.
 
 © 2026 A Bloom
 Released under the MIT License.

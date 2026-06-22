@@ -123,7 +123,7 @@
 
 1. Open SolidWorks and ensure a Part document is actively open on your device.
 
-2. Click 'Browse' to select a 2D airfoil coordinate .txt file. Make sure the training edge is closed.
+2. Click 'Browse' to select a 2D airfoil coordinate .txt or .dat file. Can handle Selig/NACA or Lednicer formats just make sure the training edge is closed.
 
 3. Enter the desired 3D position for the leading edge and trailing edge.
 
