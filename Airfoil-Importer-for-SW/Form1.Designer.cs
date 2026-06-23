@@ -56,9 +56,9 @@
             this.tableLayoutPanel6 = new System.Windows.Forms.TableLayoutPanel();
             this.btnAbout = new System.Windows.Forms.Button();
             this.btnHelp = new System.Windows.Forms.Button();
-            this.NameLabel = new System.Windows.Forms.Label();
-            this.txtFeatureName = new System.Windows.Forms.TextBox();
             this.tableLayoutPanel4 = new System.Windows.Forms.TableLayoutPanel();
+            this.txtFeatureName = new System.Windows.Forms.TextBox();
+            this.NameLabel = new System.Windows.Forms.Label();
             this.Positioning3D.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numTeX)).BeginInit();
@@ -79,10 +79,10 @@
             // txtFilePath
             // 
             this.txtFilePath.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.txtFilePath.Location = new System.Drawing.Point(162, 8);
+            this.txtFilePath.Location = new System.Drawing.Point(339, 12);
             this.txtFilePath.Margin = new System.Windows.Forms.Padding(4, 8, 4, 4);
             this.txtFilePath.Name = "txtFilePath";
-            this.txtFilePath.Size = new System.Drawing.Size(290, 34);
+            this.txtFilePath.Size = new System.Drawing.Size(339, 51);
             this.txtFilePath.TabIndex = 1;
             this.txtFilePath.TextChanged += new System.EventHandler(this.txtFilePath_TextChanged);
             // 
@@ -139,9 +139,9 @@
             this.RotationAngleLabel.AutoSize = true;
             this.RotationAngleLabel.Location = new System.Drawing.Point(3, 224);
             this.RotationAngleLabel.Name = "RotationAngleLabel";
-            this.RotationAngleLabel.Size = new System.Drawing.Size(143, 28);
+            this.RotationAngleLabel.Size = new System.Drawing.Size(147, 28);
             this.RotationAngleLabel.TabIndex = 11;
-            this.RotationAngleLabel.Text = "Rotation Angle";
+            this.RotationAngleLabel.Text = "Rotation Angle:";
             // 
             // numTeX
             // 
@@ -168,12 +168,12 @@
             // 
             this.TrailingEdgeLabel.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.TrailingEdgeLabel.AutoSize = true;
-            this.TrailingEdgeLabel.Location = new System.Drawing.Point(4, 156);
+            this.TrailingEdgeLabel.Location = new System.Drawing.Point(4, 142);
             this.TrailingEdgeLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.TrailingEdgeLabel.Name = "TrailingEdgeLabel";
-            this.TrailingEdgeLabel.Size = new System.Drawing.Size(124, 28);
+            this.TrailingEdgeLabel.Size = new System.Drawing.Size(129, 56);
             this.TrailingEdgeLabel.TabIndex = 10;
-            this.TrailingEdgeLabel.Text = "Trailing Edge";
+            this.TrailingEdgeLabel.Text = "Trailing Edge Coordinates:";
             this.TrailingEdgeLabel.Click += new System.EventHandler(this.TrailingEdgeLabel_Click);
             // 
             // numLeX
@@ -276,12 +276,13 @@
             // 
             this.LeadingEdgeLabel.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.LeadingEdgeLabel.AutoSize = true;
-            this.LeadingEdgeLabel.Location = new System.Drawing.Point(4, 88);
+            this.LeadingEdgeLabel.Location = new System.Drawing.Point(4, 74);
             this.LeadingEdgeLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.LeadingEdgeLabel.Name = "LeadingEdgeLabel";
-            this.LeadingEdgeLabel.Size = new System.Drawing.Size(130, 28);
+            this.LeadingEdgeLabel.Size = new System.Drawing.Size(135, 56);
             this.LeadingEdgeLabel.TabIndex = 1;
-            this.LeadingEdgeLabel.Text = "Leading Edge";
+            this.LeadingEdgeLabel.Text = "Leading Edge Coordinates:";
+            this.LeadingEdgeLabel.Click += new System.EventHandler(this.LeadingEdgeLabel_Click);
             // 
             // numLeY
             // 
@@ -354,9 +355,9 @@
             this.AirfoilDataLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.AirfoilDataLabel.Name = "AirfoilDataLabel";
             this.AirfoilDataLabel.Padding = new System.Windows.Forms.Padding(0, 10, 0, 0);
-            this.AirfoilDataLabel.Size = new System.Drawing.Size(150, 44);
+            this.AirfoilDataLabel.Size = new System.Drawing.Size(321, 66);
             this.AirfoilDataLabel.TabIndex = 3;
-            this.AirfoilDataLabel.Text = "Airfoil Data File:";
+            this.AirfoilDataLabel.Text = "Airfoil Data File or URL:";
             this.AirfoilDataLabel.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
             // btnBrowse
@@ -502,26 +503,6 @@
             this.btnHelp.UseVisualStyleBackColor = true;
             this.btnHelp.Click += new System.EventHandler(this.btnHelp_Click);
             // 
-            // NameLabel
-            // 
-            this.NameLabel.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.NameLabel.AutoSize = true;
-            this.NameLabel.Location = new System.Drawing.Point(3, 0);
-            this.NameLabel.Name = "NameLabel";
-            this.NameLabel.Size = new System.Drawing.Size(82, 28);
-            this.NameLabel.TabIndex = 5;
-            this.NameLabel.Text = "Feature Name:";
-            this.NameLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.NameLabel.Click += new System.EventHandler(this.NameLabel_Click);
-            // 
-            // txtFeatureName
-            // 
-            this.txtFeatureName.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.txtFeatureName.Location = new System.Drawing.Point(113, 3);
-            this.txtFeatureName.Name = "txtFeatureName";
-            this.txtFeatureName.Size = new System.Drawing.Size(440, 34);
-            this.txtFeatureName.TabIndex = 6;
-            // 
             // tableLayoutPanel4
             // 
             this.tableLayoutPanel4.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -538,6 +519,26 @@
             this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel4.Size = new System.Drawing.Size(556, 28);
             this.tableLayoutPanel4.TabIndex = 15;
+            // 
+            // txtFeatureName
+            // 
+            this.txtFeatureName.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.txtFeatureName.Location = new System.Drawing.Point(113, 3);
+            this.txtFeatureName.Name = "txtFeatureName";
+            this.txtFeatureName.Size = new System.Drawing.Size(440, 34);
+            this.txtFeatureName.TabIndex = 6;
+            // 
+            // NameLabel
+            // 
+            this.NameLabel.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.NameLabel.AutoSize = true;
+            this.NameLabel.Location = new System.Drawing.Point(3, 0);
+            this.NameLabel.Name = "NameLabel";
+            this.NameLabel.Size = new System.Drawing.Size(82, 28);
+            this.NameLabel.TabIndex = 5;
+            this.NameLabel.Text = "Feature Name:";
+            this.NameLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.NameLabel.Click += new System.EventHandler(this.NameLabel_Click);
             // 
             // Form1
             // 

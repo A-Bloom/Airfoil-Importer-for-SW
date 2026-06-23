@@ -1,7 +1,7 @@
 # Airfoil Importer for SW
 
 ## About the Project
-Airfoil-Importer-for-SW is a standalone Windows Forms application designed to automate the generation of 3D aerodynamic profiles in SolidWorks.
+Airfoil Importer for SW is a standalone Windows Forms application designed to automate the generation of 3D aerodynamic profiles in SolidWorks.
 
 Bridging the gap between computational aerodynamics and CAD, this tool parses standard 2D airfoil coordinate files, applies spatial transformations (including scaling, translation, and wingtip washout/twist), and leverages the SolidWorks COM API to inject precise 3D sketches directly into the active part document.
 
@@ -41,14 +41,9 @@ git clone https://github.com/YourUsername/Airfoil-Importer-for-SW.git
 
 ## Usage Instructions
 
-1. Open SolidWorks and ensure a Part document is actively open on your device.
-
-2. Click 'Browse' to select a 2D airfoil coordinate .txt or .dat file. Can handle Selig/NACA or Lednicer formats just make sure the training edge is closed.
-
-3. Enter the desired 3D position for the leading edge and trailing edge.
-
-4. Enter the airfoil rotation angle. A zero rotation means that the airfoil looks like a line from directly +Y.
-
-5. Enter the feature name that you want for the airfoil. Leaving it the same will overwrite the one from before.
-
-6. Generate the airfoil!
+1. **Prepare SolidWorks:** Ensure a Part document is currently active.
+2. **Select Data:** Click 'Browse' to select a local `.txt` or `.dat` file, or paste a direct URL. The tool automatically handles both Selig and Lednicer formats.
+3. **Position the Wing:** Enter the 3D coordinates for the Leading Edge and Trailing Edge (uses document units).
+4. **Apply Twist:** Enter the aerodynamic rotation angle in degrees (0° keeps the chord perfectly horizontal).
+5. **Name the Feature:** Enter a Feature Name. *Note: Using an existing sketch name will parametrically update the existing sketch's coordinates.*
+6. **Generate:** Click the button! The tool will draw the 3D continuous spline and include a permanent normal reference line at the leading edge to guide extrusions.

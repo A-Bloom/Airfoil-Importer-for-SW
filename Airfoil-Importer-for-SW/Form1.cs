@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing; // Added for changing text color
+using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using SldWorks; // Updated namespaces
-// using SwConst; (Removed if not needed to avoid errors)
+using SldWorks;
+using System.Net.Http;
+
 namespace AirfoilImporterForSW
 {
     public partial class Form1 : Form
@@ -53,23 +54,58 @@ namespace AirfoilImporterForSW
         }
 
 
-        // --- THE GENERATE BUTTON LOGIC ---
-        private void btnGenerate_Click(object sender, EventArgs e)
+        // --- THE GENERATE BUTTON LOGIC (Now Async & Web-Connected!) ---
+        private async void btnGenerate_Click(object sender, EventArgs e)
         {
-            string inputFile = txtFilePath.Text;
+            string inputSource = txtFilePath.Text;
             string featureName = txtFeatureName.Text;
 
-            // --- VALIDATE FEATURE NAME ---
             if (string.IsNullOrWhiteSpace(featureName))
             {
                 ShowStatus("Error: Please enter a name for the feature.", Color.Red);
                 return;
             }
 
-            if (!File.Exists(inputFile))
+            if (string.IsNullOrWhiteSpace(inputSource))
             {
-                ShowStatus("Error: Please select a valid airfoil text file.", Color.Red);
+                ShowStatus("Error: Please select a file or paste a URL.", Color.Red);
                 return;
+            }
+
+            // --- NEW: URL vs FILE ROUTING ---
+            string[] fileLines;
+
+            // Check if the input is a valid HTTP/HTTPS web address
+            if (Uri.TryCreate(inputSource, UriKind.Absolute, out Uri uriResult)
+                && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
+            {
+                try
+                {
+                    ShowStatus("Downloading airfoil data...", Color.Blue);
+                    using (HttpClient client = new HttpClient())
+                    {
+                        // Download the raw text from the website
+                        string rawText = await client.GetStringAsync(uriResult);
+
+                        // Split the giant text block into individual lines
+                        fileLines = rawText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ShowStatus($"Network Error: {ex.Message}", Color.Red);
+                    return;
+                }
+            }
+            else
+            {
+                // If it is not a URL, it must be a local file path
+                if (!File.Exists(inputSource))
+                {
+                    ShowStatus("Error: Could not find the file or invalid URL.", Color.Red);
+                    return;
+                }
+                fileLines = File.ReadAllLines(inputSource);
             }
 
             SldWorks.SldWorks swApp;
@@ -90,7 +126,6 @@ namespace AirfoilImporterForSW
                 return;
             }
 
-            // Automatic Unit Scaling
             double scaleToMeters = 1.0;
             int docUnit = swModel.LengthUnit;
 
@@ -114,22 +149,19 @@ namespace AirfoilImporterForSW
             double twistDeg = (double)numTwist.Value;
 
             double[] pointData;
-            bool mathSuccess = ProcessAirfoilData(inputFile, le, te, twistDeg, out pointData);
+            // Pass the extracted fileLines instead of a file path
+            bool mathSuccess = ProcessAirfoilData(fileLines, le, te, twistDeg, out pointData);
             if (!mathSuccess) return;
 
             try
             {
                 swModel.ClearSelection2(true);
 
-                // --- PARAMETRIC SKETCH EDITING ---
                 bool sketchExists = swModel.Extension.SelectByID2(featureName, "SKETCH", 0.0, 0.0, 0.0, false, 0, null, 0);
 
                 if (sketchExists)
                 {
-                    // 1. Enter the existing sketch
                     swModel.EditSketch();
-
-                    // 2. Grab the active sketch and wipe its internal geometry
                     Sketch activeSketch = (Sketch)swModel.SketchManager.ActiveSketch;
                     if (activeSketch != null)
                     {
@@ -139,32 +171,27 @@ namespace AirfoilImporterForSW
                             swModel.ClearSelection2(true);
                             foreach (SketchSegment seg in sketchSegments)
                             {
-                                seg.Select4(true, null); // True means append to current selection
+                                seg.Select4(true, null);
                             }
-                            swModel.EditDelete(); // Deletes all selected segments
+                            swModel.EditDelete();
                         }
                     }
                 }
                 else
                 {
-                    // Catch leftover "Normal" sketches from previous testing
                     if (swModel.Extension.SelectByID2(featureName + " Normal", "SKETCH", 0.0, 0.0, 0.0, false, 0, null, 0))
                     {
                         swModel.EditDelete();
                     }
 
                     swModel.ClearSelection2(true);
-
-                    // 1. Open a brand new 3D Sketch
                     swModel.SketchManager.Insert3DSketch(true);
                 }
 
                 swModel.ClearSelection2(true);
 
-                // 2. Inject the array of points directly into a single continuous spline
                 object splineFeature = swModel.SketchManager.CreateSpline((object)pointData);
 
-                // --- 3. EXTRUSION REFERENCE LINE (Twisted, 0.25x Chord Length) ---
                 double chordX = le[0] - te[0];
                 double chordY = le[1] - te[1];
                 double chordZ = le[2] - te[2];
@@ -202,12 +229,10 @@ namespace AirfoilImporterForSW
 
                 if (refLine != null) refLine.ConstructionGeometry = true;
 
-                // 4. Close the sketch
                 swModel.SketchManager.Insert3DSketch(true);
 
                 if (splineFeature != null)
                 {
-                    // Only rename if it is a brand new sketch
                     if (!sketchExists)
                     {
                         Feature lastFeature = (Feature)swModel.FeatureByPositionReverse(0);
@@ -228,76 +253,59 @@ namespace AirfoilImporterForSW
         }
 
 
-        // --- UPDATED MATH ENGINE (Auto-Detects Selig vs Lednicer) ---
-        private bool ProcessAirfoilData(string inputTxt, double[] le, double[] te, double twistDeg, out double[] pointData)
+        // --- UPDATED MATH ENGINE (Accepts Text Lines Directly) ---
+        private bool ProcessAirfoilData(string[] lines, double[] le, double[] te, double twistDeg, out double[] pointData)
         {
             pointData = null;
             try
             {
-                var lines = File.ReadAllLines(inputTxt);
-
-                // Step 1: Extract all valid, raw 2D coordinates into a temporary list
+                // We removed File.ReadAllLines because the lines are passed in directly now!
                 List<double[]> rawPoints = new List<double[]>();
 
                 foreach (var line in lines)
                 {
-                    var parts = line.Split(new[] { ' ', '\t',',' }, StringSplitOptions.RemoveEmptyEntries);
+                    var parts = line.Split(new[] { ' ', '\t', ',' }, StringSplitOptions.RemoveEmptyEntries);
 
                     if (parts.Length < 2) continue;
 
                     if (double.TryParse(parts[0], out double x) && double.TryParse(parts[1], out double y))
                     {
-                        // HEADER PROTECTION: Ignore metadata point counts (e.g., "60.0  60.0")
                         if (x > 2.0 || x < -1.0 || y > 2.0 || y < -2.0) continue;
-
                         rawPoints.Add(new double[] { x, y });
                     }
                 }
 
-                // Step 2: Detect Format and Normalize to a Continuous Loop (Selig format)
                 List<double[]> normalizedPoints = new List<double[]>();
                 int splitIndex = -1;
 
-                // Look for the Lednicer "Jump": X is near the tail (>0.8) then drops to the nose (<0.2)
                 for (int i = 0; i < rawPoints.Count - 1; i++)
                 {
                     if (rawPoints[i][0] > 0.8 && rawPoints[i + 1][0] < 0.2)
                     {
-                        splitIndex = i + 1; // This is where the lower surface begins
+                        splitIndex = i + 1;
                         break;
                     }
                 }
 
                 if (splitIndex != -1)
                 {
-                    // It is a Lednicer file! We must stitch it together.
-                    // 1. Read the upper surface backward (Tail -> Nose)
                     for (int i = splitIndex - 1; i >= 0; i--)
-                    {
                         normalizedPoints.Add(rawPoints[i]);
-                    }
 
-                    // 2. Read the lower surface forward (Nose -> Tail)
-                    // We skip the very first point of the lower surface if it's (0,0) to prevent a duplicate nose coordinate
                     int startLower = (rawPoints[splitIndex][0] < 1e-5) ? 1 : 0;
 
                     for (int i = splitIndex + startLower; i < rawPoints.Count; i++)
-                    {
                         normalizedPoints.Add(rawPoints[i]);
-                    }
                 }
                 else
                 {
-                    // No jump detected. It is already a continuous Selig loop.
                     normalizedPoints = rawPoints;
                 }
 
-                // Step 3: Run the continuous, normalized loop through the 3D Math Engine
                 List<double> final3DPoints = new List<double>();
                 foreach (var pt in normalizedPoints)
                 {
                     double[] transformedPt = TransformAirfoil(pt[0], pt[1], te, le, twistDeg);
-
                     final3DPoints.Add(transformedPt[0]);
                     final3DPoints.Add(transformedPt[1]);
                     final3DPoints.Add(transformedPt[2]);
@@ -393,6 +401,11 @@ namespace AirfoilImporterForSW
             {
                 aboutWindow.ShowDialog();
             }
+        }
+
+        private void LeadingEdgeLabel_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
