@@ -43,7 +43,8 @@ git clone https://github.com/YourUsername/Airfoil-Importer-for-SW.git
 
 1. **Prepare SolidWorks:** Ensure a Part document is currently active.
 2. **Select Data:** Click 'Browse' to select a local `.txt` or `.dat` file, or paste a direct URL. The tool automatically handles both Selig and Lednicer formats.
-3. **Position the Wing:** Enter the 3D coordinates for the Leading Edge and Trailing Edge (uses document units).
+3. **Position the Airfoil:** Enter the 3D coordinates for the Leading Edge and Trailing Edge (uses document units).
 4. **Apply Twist:** Enter the aerodynamic rotation angle in degrees (0° keeps the chord perfectly horizontal).
 5. **Name the Feature:** Enter a Feature Name. *Note: Using an existing sketch name will parametrically update the existing sketch's coordinates.*
-6. **Generate:** Click the button! The tool will draw the 3D continuous spline and include a permanent normal reference line at the leading edge to guide extrusions.
+6. **Choose a feature type:** Use 3D sketches for simple extrudes or lofts. Add the 2D sketch if you want to edit the airfoil afterwards. Use curves for surfaces.
+6. **Generate:** Click the button! The tool will draw the feature. For 3D sketches it includes a permanent normal reference line at the leading edge to guide extrusions.
