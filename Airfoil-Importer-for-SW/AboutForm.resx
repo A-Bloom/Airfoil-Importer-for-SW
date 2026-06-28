@@ -118,11 +118,11 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AboutTextBox.Text" xml:space="preserve">
-    <value>Airfoil Importer for SW v1.0.1
+    <value>Airfoil Importer for SW v1.0.2
 
 Developed by A Bloom
 
-A standalone Windows Forms utility that automates the generation of 3D aerodynamic profiles. It parses standard 2D coordinate files and uses the SolidWorks COM API to inject precise 3D sketches directly into the active part document.
+A standalone utility that automates the generation of 3D aerodynamic profiles. It parses standard 2D coordinate files and uses the SolidWorks COM API to inject precise 3D sketches, 2D sketches and curves directly into the active part document.
 
 © 2026 A Bloom
 Released under the MIT License.

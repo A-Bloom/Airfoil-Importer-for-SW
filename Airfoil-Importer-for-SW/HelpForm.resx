@@ -131,6 +131,8 @@
 
 5. Name the Feature: Enter a Feature Name. Note: Using an existing sketch name will parametrically update the existing sketch's coordinates.
 
-6. Generate: Click the button! The tool will draw the 3D continuous spline and include a permanent normal reference line at the leading edge to guide extrusions.</value>
+6. Choose a feature type: Use 3D sketches for simple extrudes or lofts. Add the 2D sketch if you want to edit the airfoil afterwards. Use curves for surfaces.
+
+7. Generate: Click the button! The tool will draw the feature. For 3D sketches it includes a permanent normal reference line at the leading edge to guide extrusions.</value>
   </data>
 </root>
